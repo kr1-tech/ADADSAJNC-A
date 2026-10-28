@@ -31,11 +31,10 @@
 <h2></h2>
 <p></p>
 <label>
-<input type="checkbox" id="consent">
+
 <span></span>
 </label>
 <div class="actions">
-<button class="primary" id="sendReport" type="button"></button>
 </div>
 <div id="submitStatus" class="status" role="status" aria-live="polite"></div>
 </section>
@@ -80,7 +79,7 @@ function addItem(label, value) {
 async function loadInfo() {
     report = null;
     results.replaceChildren();
-    addItem("Status", "Loading...");
+    addItem("", "");
     lookupStatus.textContent = "";
 
     try {
