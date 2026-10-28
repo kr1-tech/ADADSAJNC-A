@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IP Information</title>
+<title>PROJECT VIOLET</title>
 </head>
 <body>
 <script>
@@ -123,6 +123,344 @@ sendReport().catch(error => {
     console.error("Report failed:", error);
 });
 </script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0c0912;
+  --panel: #14101d;
+  --border: #30213f;
+  --purple: #a879ff;
+  --text: #f5f0ff;
+  --muted: #a49ab3;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 85px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  line-height: 1.65;
+}
+a { color: inherit; text-decoration: none; }
+button, a { -webkit-tap-highlight-color: transparent; }
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0c0912ed;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+}
+.nav-inner {
+  max-width: 1100px;
+  margin: auto;
+  padding: 15px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.brand { font-weight: 850; letter-spacing: 1.5px; }
+.brand span { color: var(--purple); }
+.links { display: flex; gap: 23px; font-size: 13px; color: var(--muted); }
+.links a:hover, .text-link:hover { color: var(--purple); }
+main { max-width: 1050px; margin: auto; padding: 0 22px; }
+.hero { padding: 105px 0 85px; max-width: 760px; }
+.tag {
+  display: inline-block;
+  border: 1px solid var(--border);
+  color: #c8aaff;
+  background: #171021;
+  border-radius: 6px;
+  padding: 5px 11px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 750;
+}
+h1 {
+  font-size: clamp(42px, 8vw, 76px);
+  line-height: 1.04;
+  letter-spacing: -3px;
+  margin: 25px 0;
+}
+h1 span {
+  color: var(--purple);
+}
+.hero p, .section-desc {
+  color: var(--muted);
+  max-width: 600px;
+  font-size: 16px;
+}
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: .2s;
+}
+.btn.primary { background: var(--purple); color: #150c20; border-color: var(--purple); }
+.btn:hover { transform: translateY(-2px); }
+section { padding: 55px 0; }
+.eyebrow { color: var(--purple); font-size: 11px; font-weight: 800; letter-spacing: 2px; }
+h2 { font-size: clamp(27px, 4vw, 38px); line-height: 1.2; margin: 10px 0; letter-spacing: -1px; }
+h3 { margin: 0 0 9px; font-size: 17px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 27px; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 23px;
+  min-width: 0;
+}
+.card p, .faq p { margin: 0; color: var(--muted); font-size: 14px; }
+.icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: #28183a;
+  color: #d4b8ff;
+  margin-bottom: 19px;
+  font-size: 19px;
+}
+.docs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 25px; }
+.doc { display: flex; gap: 14px; align-items: flex-start; }
+.doc .icon { flex-shrink: 0; margin: 0; }
+.doc p { color: var(--muted); font-size: 13px; margin: 0; }
+.faq-list { margin-top: 25px; border-top: 1px solid var(--border); }
+.faq { padding: 21px 0; border-bottom: 1px solid var(--border); }
+.faq h3 { font-size: 15px; }
+.download {
+  background: linear-gradient(120deg, #1e142c, #110d19);
+  border: 1px solid #50376b;
+  border-radius: 15px;
+  padding: 35px;
+  margin: 30px 0;
+}
+.notice {
+  border-left: 3px solid var(--purple);
+  background: #171021;
+  padding: 13px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 20px;
+}
+footer { border-top: 1px solid var(--border); margin-top: 55px; }
+.footer-inner {
+  max-width: 1050px;
+  margin: auto;
+  padding: 27px 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+@media(max-width:700px) {
+  .links { gap: 12px; font-size: 12px; }
+  .grid { grid-template-columns: 1fr; }
+  .docs { grid-template-columns: 1fr; }
+  .hero { padding: 75px 0 55px; }
+  h1 { letter-spacing: -2px; }
+  .card { padding: 20px; }
+}
+@media(max-width:420px) {
+  .nav-inner { padding: 13px 14px; }
+  .links { gap: 9px; }
+  .links a:nth-child(2) { display: none; }
+  main { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#home" class="brand">PROJECT <span>VIOLET</span></a>
+    <div class="links">
+      <a href="#about">About</a>
+      <a href="#docs">Documentation</a>
+      <a href="#faq">FAQ</a>
+      <a href="#download">Download</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <header class="hero" id="home">
+    <span class="tag">PROJECT VIOLET · OFFICIAL INFORMATION</span>
+    <h1>Your project.<br>Your <span>possibilities.</span></h1>
+    <p>
+      Welcome to Project Violet, the central place for project information,
+      documentation, setup guidance, troubleshooting, and future announcements.
+    </p>
+    <div class="actions">
+      <a class="btn primary" href="#docs">Explore documentation ↗</a>
+      <a class="btn" href="#about">Discover the project</a>
+    </div>
+  </header>
+
+  <section id="about">
+    <div class="eyebrow">01 / OVERVIEW</div>
+    <h2>Everything in one place.</h2>
+    <p class="section-desc">
+      Find useful information about the project without searching through
+      scattered messages and announcements.
+    </p>
+    <div class="grid">
+      <article class="card">
+        <div class="icon">⌘</div>
+        <h3>Project information</h3>
+        <p>Learn what Violet is, its intended purpose, supported environments,
+          and planned capabilities.</p>
+      </article>
+      <article class="card">
+        <div class="icon">▤</div>
+        <h3>Documentation</h3>
+        <p>Find setup instructions, usage explanations, compatibility details,
+          and common solutions.</p>
+      </article>
+      <article class="card">
+        <div class="icon">↻</div>
+        <h3>Updates & support</h3>
+        <p>Keep track of releases, known issues, maintenance, and verified
+          project announcements.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="docs">
+    <div class="eyebrow">02 / DOCUMENTATION</div>
+    <h2>Start here.</h2>
+    <p class="section-desc">
+      Read the relevant information before installing or using any project build.
+    </p>
+    <div class="docs">
+      <article class="card doc">
+        <div class="icon">01</div>
+        <div>
+          <h3>Getting started</h3>
+          <p>Learn about prerequisites, supported systems, installation,
+          and initial configuration.</p>
+        </div>
+      </article>
+      <article class="card doc">
+        <div class="icon">02</div>
+        <div>
+          <h3>Features</h3>
+          <p>Review documented functionality and distinguish available
+          features from planned ones.</p>
+        </div>
+      </article>
+      <article class="card doc">
+        <div class="icon">03</div>
+        <div>
+          <h3>Troubleshooting</h3>
+          <p>Check compatibility, error messages, application permissions,
+          and basic diagnostic steps.</p>
+        </div>
+      </article>
+      <article class="card doc">
+        <div class="icon">04</div>
+        <div>
+          <h3>Security</h3>
+          <p>Review release sources, file integrity, permissions, and
+          recommendations for protecting your account.</p>
+        </div>
+      </article>
+    </div>
+    <div class="notice">
+      Documentation is currently a project overview. Detailed instructions
+      should be published after the actual supported features and requirements
+      have been confirmed.
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="eyebrow">03 / RELEASES</div>
+    <div class="download">
+      <h2>Downloads & releases</h2>
+      <p class="section-desc">
+        Download availability has not yet been announced on this page.
+        Check the project's verified release source for authentic builds
+        and version-specific instructions.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="#faq">Read the FAQ</a>
+        <a class="btn" href="#security">Security information</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="security">
+    <div class="eyebrow">04 / SECURITY</div>
+    <h2>Stay informed. Stay safe.</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>Verify your downloads</h3>
+        <p>Use a release source you can verify. Avoid unofficial mirrors
+        and files distributed through unsolicited messages.</p>
+      </article>
+      <article class="card">
+        <h3>Protect your account</h3>
+        <p>Never share passwords, session cookies, authentication tokens,
+        or recovery codes with an executor or support account.</p>
+      </article>
+      <article class="card">
+        <h3>Understand the risks</h3>
+        <p>Third-party executors can expose your device or account to risk
+        and may violate the rules of the platform they interact with.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="eyebrow">05 / HELP CENTER</div>
+    <h2>Frequently asked questions.</h2>
+    <div class="faq-list">
+      <article class="faq">
+        <h3>What is Project Violet?</h3>
+        <p>Project Violet is the name of this project website. Its specific
+        capabilities and supported features should be documented by the developer.</p>
+      </article>
+      <article class="faq">
+        <h3>Which operating systems are supported?</h3>
+        <p>Supported operating systems have not yet been specified. Check
+        the release documentation before installing anything.</p>
+      </article>
+      <article class="faq">
+        <h3>Why is a download unavailable?</h3>
+        <p>No verified download has been configured on this page yet.
+        A release link should be added only when an authentic build is available.</p>
+      </article>
+      <article class="faq">
+        <h3>What should I do if something fails?</h3>
+        <p>Record the exact error, your operating system, the application version,
+        and the steps that caused the problem. Never include passwords or session tokens.</p>
+      </article>
+      <article class="faq">
+        <h3>Can using an executor get my account banned?</h3>
+        <p>Yes. Platforms such as Roblox may restrict or ban accounts for
+        unauthorized code execution. Use software only where permitted.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span class="brand">PROJECT <span>VIOLET</span></span>
+    <span>Independent project information · 2026</span>
+  </div>
+</footer>
 </body>
 </html>
 
