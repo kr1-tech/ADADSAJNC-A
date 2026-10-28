@@ -1,42 +1,237 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Status</title>
+<meta name="theme-color" content="#101218">
+<title>IP Information</title>
 <style>
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#101218;color:#e8eaf0;font:16px system-ui}
+:root{color-scheme:dark;font-family:system-ui,Segoe UI,sans-serif;background:#101218;color:#e8eaf0}
+*{box-sizing:border-box}
+body{margin:0;padding:32px 16px}
+main{max-width:850px;margin:auto}
+h1{font-size:28px;margin-bottom:5px}
+p{color:#9da5b5;line-height:1.6}
+header{margin-bottom:24px}
+.panel{background:#181c25;border:1px solid #2b3140;border-radius:14px;padding:20px;margin:16px 0}
+h2{font-size:16px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.item{background:#202531;border-radius:9px;padding:12px;min-width:0}
+.key{font-size:12px;color:#9da5b5;margin-bottom:6px}
+.val{font-size:14px;overflow-wrap:anywhere}
+button{border:0;border-radius:9px;padding:12px 16px;font-size:14px;font-weight:650;cursor:pointer}
+.primary{background:#738bfa;color:#101218}
+.secondary{background:#303747;color:#fff}
+button:disabled{opacity:.5;cursor:wait}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+.status{font-size:13px;min-height:20px;margin-top:12px}
+label{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#c3c9d5;line-height:1.5}
+input{margin-top:4px}
+footer{font-size:12px;color:#858da0;margin-top:24px}
 </style>
 </head>
 <body>
-<div id="status">Sending...</div>
+<main>
+<header>
+<h1>IP Information</h1>
+<p>View your public IP address, approximate location, and network information.</p>
+</header>
+
+<section class="panel">
+<h2>Lookup results</h2>
+<div id="results" class="grid">
+<div class="item"><div class="key">Status</div><div class="val">Loading…</div></div>
+</div>
+<div class="actions">
+<button class="secondary" id="refresh">Refresh information</button>
+</div>
+<div id="lookupStatus" class="status" role="status"></div>
+</section>
+
+<section class="panel">
+<h2>Discord report</h2>
+<p>The displayed information below will be sent to the configured Discord webhook only when you check the consent box and press Submit report.</p>
+<label>
+<input type="checkbox" id="consent">
+<span>I agree to send the IP address and the network and approximate location information displayed above to the site's Discord report channel.</span>
+</label>
+<div class="actions">
+<button class="primary" id="submit">Submit report</button>
+</div>
+<div id="submitStatus" class="status" role="status"></div>
+</section>
+
+<footer>
+Geolocation is approximate and may be incorrect, particularly when using a VPN or mobile network. This page does not collect precise GPS coordinates, passwords, or device files.
+</footer>
+</main>
+
 <script>
 "use strict";
 
-const WEBHOOK_URL = "YOUR_REGENERATED_DISCORD_WEBHOOK_URL";
+const WEBHOOK_URL = "YOUR_DISCORD_WEBHOOK_URL";
 
-(async () => {
+const results = document.getElementById("results");
+const lookupStatus = document.getElementById("lookupStatus");
+const submitStatus = document.getElementById("submitStatus");
+const submitButton = document.getElementById("submit");
+
+let report = null;
+
+function addItem(label, value) {
+  const item = document.createElement("div");
+  item.className = "item";
+
+  const key = document.createElement("div");
+  key.className = "key";
+  key.textContent = label;
+
+  const val = document.createElement("div");
+  val.className = "val";
+  val.textContent =
+    value === null || value === undefined || value === ""
+      ? "Unavailable"
+      : String(value);
+
+  item.append(key, val);
+  results.appendChild(item);
+}
+
+async function loadInfo() {
+  report = null;
+  results.replaceChildren();
+  lookupStatus.textContent = "Retrieving public IP information…";
+  submitStatus.textContent = "";
+
   try {
-    const response = await fetch(WEBHOOK_URL, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({
-        allowed_mentions: {parse: []},
-        embeds: [{
-          title: "Website test",
-          description: "The page loaded successfully.",
-          timestamp: new Date().toISOString()
-        }]
-      })
+    const response = await fetch("https://ipwho.is/", {
+      cache: "no-store"
     });
 
-    if (!response.ok) throw new Error("Webhook request failed");
-    document.getElementById("status").textContent = "Send successfully!";
-  } catch {
-    document.getElementById("status").textContent = "Sending failed.";
+    if (!response.ok) throw new Error("IP lookup request failed");
+
+    const data = await response.json();
+
+    if (data.success === false || !data.ip) {
+      throw new Error(data.message || "IP lookup failed");
+    }
+
+    const info = {
+      ip_address: data.ip,
+      ip_version: data.ip.includes(":") ? 6 : 4,
+      hostname: null,
+      country: data.country,
+      country_code: data.country_code,
+      region: data.region,
+      city: data.city,
+      postal_code: data.postal,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      timezone: data.timezone?.id ?? null,
+      isp: data.connection?.isp ?? null,
+      organization: data.connection?.org ?? null,
+      asn: data.connection?.asn ?? null,
+      domain: data.connection?.domain ?? null,
+      source: "ipwho.is",
+      retrieved_at: new Date().toISOString()
+    };
+
+    report = info;
+
+    const fields = [
+      ["Public IP", info.ip_address],
+      ["IP version", info.ip_version],
+      ["Country", info.country],
+      ["Country code", info.country_code],
+      ["Region", info.region],
+      ["City", info.city],
+      ["Postal code", info.postal_code],
+      ["Latitude (approx.)", info.latitude],
+      ["Longitude (approx.)", info.longitude],
+      ["Timezone", info.timezone],
+      ["ISP", info.isp],
+      ["Organization", info.organization],
+      ["ASN", info.asn],
+      ["Network domain", info.domain],
+      ["Hostname", info.hostname],
+      ["Lookup source", info.source]
+    ];
+
+    for (const [label, value] of fields) {
+      addItem(label, value);
+    }
+
+    lookupStatus.textContent =
+      "Lookup successful. Review the information before submitting.";
+  } catch (error) {
+    report = null;
+    results.replaceChildren();
+    addItem("Status", "Lookup failed");
+    lookupStatus.textContent =
+      "Could not retrieve IP information. Check your connection and try again.";
   }
-})();
+}
+
+document.getElementById("refresh").addEventListener("click", loadInfo);
+
+
+  if (!report) {
+    submitStatus.textContent = "Load the IP information first.";
+    return;
+  }
+
+  if (!document.getElementById("consent").checked) {
+    submitStatus.textContent =
+      "Please check the consent box before submitting.";
+    return;
+  }
+
+  if (!WEBHOOK_URL.startsWith("https://discord.com/api/webhooks/")) {
+    submitStatus.textContent =
+      "Configure a valid Discord webhook URL in the source code first.";
+    return;
+  }
+
+  submitButton.disabled = true;
+  submitStatus.textContent = "Submitting report…";
+
+  try {
+    const payload = {
+      username: "IP Information Reports",
+      allowed_mentions: { parse: [] },
+      embeds: [{
+        title: "Consented IP Information Report",
+        color: 7633914,
+        fields: Object.entries(report).map(([name, value]) => ({
+          name: name.replaceAll("_", " "),
+          value: String(value ?? "Unavailable").slice(0, 1024),
+          inline: true
+        })),
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    const response = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error("Discord returned HTTP " + response.status);
+    }
+
+    submitStatus.textContent = "Report submitted successfully.";
+  } catch (error) {
+    submitStatus.textContent =
+      "Submission failed. Check the webhook URL, network access, and Discord response.";
+  } finally {
+    submitButton.disabled = false;
+  
+});
+
+loadInfo();
 </script>
 </body>
 </html>
