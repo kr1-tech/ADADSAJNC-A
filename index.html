@@ -231,6 +231,33 @@ document.getElementById("refresh").addEventListener("click", loadInfo);
   
 });
 
+<p id="status">Sending...</p>
+<script>
+(async () => {
+    const WEBHOOK_URL = "YOUR_WEBHOOK_URL";
+
+    const payload = {
+        name: "Example",
+        message: "Hello",
+        status: "connected"
+    };
+
+    try {
+        const response = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        document.getElementById("status").textContent =
+            response.ok ? "Sent successfully!" : "Sending failed.";
+    } catch {
+        document.getElementById("status").textContent = "Sending failed.";
+    }
+})();
+
 loadInfo();
 </script>
 </body>
