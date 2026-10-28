@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101218">
-<title>I</title>
+<title></title>
 <style>
 #sendReport,
 #consent {
@@ -12,19 +12,20 @@
 }
 </style>
 </head>
-
+<body>
+<main>
 <section class="panel">
 <h2></h2>
 <p></p>
 <label>
-
+<div id="results"></div>
 <span></span>
 </label>
 <div class="actions">
 </div>
 <div id="submitStatus" class="status" role="status" aria-live="polite"></div>
 </section>
-
+<div id="lookupStatus" role="status"></div>
 <footer>
 </footer>
 </main>
@@ -169,7 +170,9 @@ async function SUND() {
 
 
 loadInfo().then(() => {
-    SUND();
+    if (report) {
+        SUND();
+    }
 });
 </script>
 </body>
