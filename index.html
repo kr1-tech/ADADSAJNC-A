@@ -178,18 +178,6 @@ async function loadInfo() {
 async function SUND() {
     if (sending) return;
 
-    if (!report) {
-        submitStatus.textContent =
-            "Wait for the IP information lookup to finish.";
-        return;
-    }
-
-    if (!consent.checked) {
-        submitStatus.textContent =
-            "Please agree to send the displayed information first.";
-        return;
-    }
-
     if (!WEBHOOK_URL.startsWith("https://discord.com/api/webhooks/")) {
         submitStatus.textContent =
             "Configure a valid Discord webhook URL in the source code first.";
