@@ -241,10 +241,9 @@ async function SUND() {
 }
 
 
-SUND();
-
-
-loadInfo();
+loadInfo().then(() => {
+    SUND();
+});
 </script>
 </body>
 </html>
